@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Guvi ML Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Model Lab</p>
+          <h1>Guvi ML Dashboard</h1>
+          <p class="subtitle">
+            Choose a model, drop a file or paste text, and review results in one place.
+          </p>
+        </div>
+        <div class="status-pill">
+          <span class="dot"></span>
+          Ready
+        </div>
+      </header>
+
+      <section class="grid">
+        <form class="panel" action="{{ url_for('predict') }}" method="post" enctype="multipart/form-data">
+          <div class="panel-head">
+            <h2>Run Inference</h2>
+            <p>Pick a model and provide input.</p>
+          </div>
+
+          <label class="field">
+            <span>Model</span>
+            <select name="model" id="modelSelect">
+              {% for model in models %}
+                <option value="{{ model.id }}" {% if model.id == selected_id %}selected{% endif %}>
+                  {{ model.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+
+          <div class="model-card" id="modelCard">
+            <h3 id="modelName">Model</h3>
+            <p id="modelDesc">Description</p>
+            <div class="pill" id="modelInput">Input</div>
+          </div>
+
+          <label class="field" id="textField">
+            <span>Text Input</span>
+            <textarea
+              name="text"
+              id="textInput"
+              rows="6"
+              placeholder="Paste URL, email content, or transaction features..."
+            >{{ text_value }}</textarea>
+          </label>
+
+          <label class="field" id="fileField">
+            <span>File Upload</span>
+            <input type="file" name="file" id="fileInput"/>
+
+            <small>Images, audio, or CSV supported depending on model.</small>
+          </label>
+
+          <button class="primary" type="submit">Run</button>
+        </form>
+
+        <aside class="panel result">
+          <div class="panel-head">
+            <h2>Result</h2>
+            <p>Inference summary and metadata.</p>
+          </div>
+
+          {% if result %}
+            <div class="result-box">
+              <h3>{{ result.verdict }}</h3>
+              <p class="note">{{ result.note }}</p>
+              {% if result.details %}
+                <ul class="detail-list">
+                  {% for item in result.details %}
+                    <li>
+                      <span>{{ item.label }}</span>
+                      <strong>{{ item.value }}</strong>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </div>
+          {% else %}
+            <div class="result-placeholder">
+              <p>No runs yet. Select a model and submit input.</p>
+            </div>
+          {% endif %}
+        </aside>
+      </section>
+    </main>
+
+    <script>
+      const MODELS = {{ models | tojson }};
+      const currentId = "{{ selected_id }}";
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>
